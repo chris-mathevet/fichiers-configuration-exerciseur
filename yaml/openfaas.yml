@@ -158,7 +158,7 @@ services:
         environment:
             gateway_url: "http://gateway:8080"
             prometheus_host: "prometheus"
-            inactivity_duration: "1m"
+            inactivity_duration: "5m"
             basic_auth: "${BASIC_AUTH:-false}"
             secret_mount_path: "/run/secrets"
         networks:
