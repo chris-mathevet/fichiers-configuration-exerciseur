@@ -20,7 +20,7 @@ services:
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=public
       - --certificatesresolvers.leresolver.acme.httpchallenge=true
-      - --certificatesresolvers.leresolver.acme.email=julien.robert@univ-orleans.fr #Set your email address here, is for the generation of SSL certificates with Let's Encrypt.
+      - --certificatesresolvers.leresolver.acme.email=<Your email> #Set your email address here, is for the generation of SSL certificates with Let's Encrypt.
       - --certificatesresolvers.leresolver.acme.storage=/root/acme/acme.json
       - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
         #- --api
