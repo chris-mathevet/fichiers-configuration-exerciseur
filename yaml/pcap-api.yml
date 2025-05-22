@@ -1,0 +1,134 @@
+networks:
+  public:
+    external: true
+secrets:
+  smtp-email-password:
+    external: true
+  smtp-email-user:
+    external: true
+services:
+  pcap-api:
+    deploy:
+      labels:
+        traefik.enable: "false"
+        traefik.http.routers.pcap-api.entrypoints: websecure
+        traefik.http.routers.pcap-api.service: pcap-api
+        traefik.http.routers.pcap-api.tls.certresolver: leresolver
+        traefik.http.services.pcap-api.loadbalancer.server.port: '8000'
+      mode: replicated
+      replicas: 1
+    environment:
+      DATABASE_HOST: pcap-db
+      DATABASE_NAME: postgres
+      OPENFAAS_URL: http://gateway:8080
+      SMTP_EMAIL_PASSWORD_FILE: /run/secrets/smtp-email-password
+      SMTP_EMAIL_USER_FILE: /run/secrets/smtp-email-user
+    image: jrobert2/pcap-api:1.03
+    networks:
+      public: {}
+    secrets:
+    - source: smtp-email-password
+    - source: smtp-email-user
+    volumes:
+    - pcap-api:/pcap-api:rw # Serveur NFS pour cluster Multi Noeuds
+    # - /home/lifoadm/pcap-deployment-master/Stacks/src/pcap-api:/pcap-api:rw # Pour cluster Mono - Noeuds sur pcap-master
+    - /var/run/docker.sock:/var/run/docker.sock:rw
+  pcap-celery-worker:
+    command: -A pcap_api worker
+    deploy:
+      mode: replicated
+      replicas: 1
+    entrypoint: celery
+    environment:
+      DATABASE_HOST: pcap-db
+      DATABASE_NAME: postgres
+      OPENFAAS_URL: http://gateway:8080
+      SMTP_EMAIL_PASSWORD_FILE: /run/secrets/smtp-email-password
+      SMTP_EMAIL_USER_FILE: /run/secrets/smtp-email-user
+    image: jrobert2/pcap-api:1.03
+    networks:
+      public: {}
+    secrets:
+    - source: smtp-email-password
+    - source: smtp-email-user
+    volumes:
+    - pcap-api:/pcap-api:rw # Serveur NFS pour cluster Multi Noeuds
+    # - /home/lifoadm/pcap-deployment-master/Stacks/src/pcap-api:/pcap-api:rw # Pour cluster Mono - Noeuds sur pcap-master 
+    - /var/run/docker.sock:/var/run/docker.sock:rw
+  pcap-convergence:
+    deploy:
+      mode: replicated
+      replicas: 1
+    image: convergencelabs/convergence-omnibus:1.0.0-rc.6
+    networks:
+      public: {}
+    restart: always
+  pcap-db:
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    image: postgres:16.1
+    networks:
+      public: {}
+    volumes:
+    - postgres-data:/var/lib/postgresql/data:rw
+  pcap-nginx:
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.nginx.entrypoints: websecure
+        traefik.http.routers.nginx.rule: Host(`rtd.localhost`)
+        traefik.http.routers.nginx.service: nginx
+        traefik.http.routers.nginx.tls.certresolver: leresolver
+        traefik.http.services.nginx.loadbalancer.server.port: '80'
+      mode: replicated
+      replicas: 1
+    image: jrobert2/pcap-nginx:convergence
+    networks:
+      public: {}
+    restart: always
+    volumes:
+    - readthedocs.org:/readthedocs:rw
+  pcap-rabbitmq:
+    image: rabbitmq:latest
+    networks:
+      public: {}
+    restart: always
+  pcap-registry:
+    deploy:
+      mode: replicated
+      replicas: 1
+    image: registry:2
+    networks:
+      public: {}
+    ports:
+    - 127.0.0.1:5000:5000/tcp
+    volumes:
+    - nfs_docker_registry:/var/lib/registry:rw
+  pcap-rtd:
+    deploy:
+      labels:
+        traefik.enable: "false"
+        traefik.http.routers.rtd.entrypoints: websecure
+        traefik.http.routers.rtd.service: rtd
+        traefik.http.routers.rtd.tls.certresolver: leresolver
+        traefik.http.services.rtd.loadbalancer.server.port: '8000'
+      mode: replicated
+      replicas: 1
+    environment:
+      EasyPythonProduction: "true"
+      PCAP_API_SERVER: pcap-api-rest:8000/pcap
+      PCAP_API_URI: http://localhost/pcap/api/v1/
+      RTD_PRODUCTION_DOMAIN: rtd.localhost:80
+      no_proxy: '"localhost,127.0.0.1,pcap-api-rest,pcap-rtd-db"'
+    image: jrobert2/rtd:1.0
+    networks:
+      public: {}
+    volumes:
+    - readthedocs.org:/readthedocs.org:rw
+version: '3.3'
+volumes:
+  nfs_docker_registry: {}
+  postgres-data: {}
+  readthedocs.org: {}
+  pcap-api: {}

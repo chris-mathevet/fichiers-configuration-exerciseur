@@ -1,0 +1,41 @@
+---
+
+version: '3.2'
+
+services:
+  traefik:
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    image: traefik:2.10.4
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.swarmMode=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=public
+      - --certificatesresolvers.leresolver.acme.httpchallenge=true
+      - --certificatesresolvers.leresolver.acme.email=julien.robert@univ-orleans.fr #Set your email address here, is for the generation of SSL certificates with Let's Encrypt.
+      - --certificatesresolvers.leresolver.acme.storage=/root/acme/acme.json
+      - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+        #- --api
+      - --api.insecure=true
+      - --log.level=ERROR
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    networks:
+      - public
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/root/acme/:/root/acme/"
+
+networks:
+  public:
+    external: true
