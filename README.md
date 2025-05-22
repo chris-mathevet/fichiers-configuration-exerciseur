@@ -11,7 +11,8 @@ Ce dépôt git permet de stocker les différents fichiers de configurations néc
 
 ## Yaml
 
-Contient les fichiers de configurations nécessaires au déploiement de stack docker (docker swarm) pour l'exerciseur.
+Contient les fichiers de configurations nécessaires au déploiement de stack docker (docker swarm) pour l'exerciseur.  
+Contient également un fichier `local_dev.sh` pour créer les 3 stacks docker.
 
 ## Archives_volumes
 
