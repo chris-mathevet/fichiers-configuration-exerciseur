@@ -171,6 +171,7 @@ services:
                 window: 380s
             placement:
                 constraints:
+                - "node.role == manager"
                 - "node.platform.os == linux"
         secrets:
             - basic-auth-user
