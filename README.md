@@ -20,5 +20,10 @@ Vous pouvez également modifier la ligne **24**, en précisant un autre chemin p
 
 ## Archives_volumes
 
-Contient des archives `.tar` contenant les fichiers nécessaires aux différents volumes.
+Contient des archives `.tar` contenant les fichiers nécessaires aux différents volumes / stockage NFS.
 
+Pour le répertoire "nginx", il faut configurer le serveur NFS (ou autre) pour que ce répertoire soit accessible sur l'ensemble des machines, mais il ne faut pas créer de volume docker.
+
+Il est utilisé simplement en volume-bind pour le fichier de configuration.
+
+Potentiellement modifier la ligne **94** de votre fichier pcap-api.yaml en fonction d'où le fichier nginx.conf sera placé.
