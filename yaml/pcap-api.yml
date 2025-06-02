@@ -119,6 +119,7 @@ services:
       mode: replicated
       replicas: 1
     environment:
+      PROF_GROUP: enseignants
       EasyPythonProduction: "true"
       PCAP_API_SERVER: pcap-api-rest:8000/pcap
       PCAP_API_URI: http://localhost/pcap/api/v1/
