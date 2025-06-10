@@ -7,7 +7,7 @@ services:
         # image: quay.io/openfaas/gateway:0.18.18
         networks:
             - public
-            - functions
+            - openfaas_functions
         environment:
             functions_provider_url: "http://faas-swarm:8080/"
             read_timeout: "5m5s" # Maximum time to read HTTP request
@@ -18,7 +18,7 @@ services:
             faas_nats_port: 4222
             direct_functions: "true" # Functions are invoked directly over the overlay network
             direct_functions_suffix: ""
-            basic_auth: "${BASIC_AUTH:-false}"
+            basic_auth: "${BASIC_AUTH:-true}"
             secret_mount_path: "/run/secrets/"
             scale_from_zero: "true" # Enable if you want functions to scale from 0/0 to min replica count upon invoke
             max_idle_conns: 1024
@@ -48,7 +48,7 @@ services:
         # image: ghcr.io/openfaas/basic-auth:0.25.5
         image: quay.io/openfaas/basic-auth-plugin:0.18.18
         networks:
-            - functions
+            - openfaas_functions
         environment:
             secret_mount_path: "/run/secrets/"
             user_filename: "basic-auth-user"
@@ -78,12 +78,12 @@ services:
             - "/var/run/docker.sock:/var/run/docker.sock"
         image: quay.io/openfaas/faas-swarm:0.9.0
         networks:
-            - functions
+            - openfaas_functions
         environment:
             read_timeout: "5m5s" # set both here, and on your functions
             write_timeout: "5m5s" # set both here, and on your functions
             DOCKER_API_VERSION: "1.30"
-            basic_auth: "${BASIC_AUTH:-false}"
+            basic_auth: "${BASIC_AUTH:-true}"
             secret_mount_path: "/run/secrets/"
         deploy:
             placement:
@@ -113,7 +113,7 @@ services:
         #     - 8222:8222
         command: "--store memory --cluster_id faas-cluster"
         networks:
-            - functions
+            - openfaas_functions
         deploy:
             resources:
                 limits:
@@ -127,11 +127,11 @@ services:
     queue-worker:
         image: ghcr.io/openfaas/queue-worker:619158b8e41fd0d26ccbc7c5f5469c0698d3bad1 # Version 0.14.2
         networks:
-            - functions
+            - openfaas_functions
         environment:
             max_inflight: "1"
             ack_wait: "5m5s" # Max duration of any async task / request
-            basic_auth: "${BASIC_AUTH:-false}"
+            basic_auth: "${BASIC_AUTH:-true}"
             secret_mount_path: "/run/secrets/"
             gateway_invoke: "true"
             faas_gateway_address: "gateway"
@@ -159,7 +159,7 @@ services:
     #         gateway_url: "http://gateway:8080"
     #         prometheus_host: "prometheus"
     #         inactivity_duration: "5m"
-    #         basic_auth: "${BASIC_AUTH:-false}"
+    #         basic_auth: "${BASIC_AUTH:-true}"
     #         secret_mount_path: "/run/secrets"
     #     networks:
     #         - functions
@@ -248,7 +248,7 @@ services:
 #         file: ./prometheus/alertmanager.yml
 
 networks:
-    functions:
+    openfaas_functions:
       external: true
         # driver: overlay
         # attachable: true

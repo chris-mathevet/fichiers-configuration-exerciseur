@@ -1,6 +1,11 @@
 networks:
   public:
     external: true
+secrets:
+    basic-auth-user:
+        external: true
+    basic-auth-password:
+        external: true
 services:
   pcap-api:
     deploy:
@@ -17,6 +22,11 @@ services:
       DATABASE_HOST: pcap-db
       DATABASE_NAME: postgres
       OPENFAAS_URL: http://gateway:8080
+      OPENFAAS_USERNAME_FILE: /run/secrets/basic-auth-user
+      OPENFAAS_PASSWORD_FILE: /run/secrets/basic-auth-password
+    secrets:
+    - source: basic-auth-user
+    - source: basic-auth-password
     image: jrobert2/pcap-api:1.03
     entrypoint: /bin/sh
     command: |-
@@ -61,6 +71,11 @@ services:
       DATABASE_HOST: pcap-db
       DATABASE_NAME: postgres
       OPENFAAS_URL: http://gateway:8080
+      OPENFAAS_USERNAME_FILE: /run/secrets/basic-auth-user
+      OPENFAAS_PASSWORD_FILE: /run/secrets/basic-auth-password
+    secrets:
+    - source: basic-auth-user
+    - source: basic-auth-password
     image: jrobert2/pcap-api:1.03
     networks:
       public: {}
