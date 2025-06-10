@@ -1,0 +1,48 @@
+log:
+  level: DEBUG
+
+api:
+  insecure: true
+
+ports:
+  web:
+    port: 80
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+  websecure:
+    port: 443
+
+certificatesResolvers:
+  leresolver:
+    acme:
+      email: julien.robert@univ-orleans.fr
+      storage: /data/acme.json
+      httpChallenge:
+        entryPoint: web
+
+ingressRoute:
+  dashboard:
+    enabled: true
+
+deployment:
+  additionalVolumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+      type: Socket
+
+additionalVolumeMounts:
+  - name: docker-sock
+    mountPath: /var/run/docker.sock
+    readOnly: true
+
+crds:
+  enabled: true 
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+

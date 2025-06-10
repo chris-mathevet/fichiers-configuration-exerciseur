@@ -16,7 +16,7 @@ services:
             dnsrr: "true" # Temporarily use dnsrr in place of VIP while issue persists on PWD
             faas_nats_address: "nats"
             faas_nats_port: 4222
-            direct_functions: "false" # Functions are invoked directly over the overlay network
+            direct_functions: "true" # Functions are invoked directly over the overlay network
             direct_functions_suffix: ""
             basic_auth: "${BASIC_AUTH:-false}"
             secret_mount_path: "/run/secrets/"
@@ -153,63 +153,63 @@ services:
             - basic-auth-user
             - basic-auth-password
 
-    faas-idler:
-        image: quay.io/openfaas/faas-idler:0.4.0
-        environment:
-            gateway_url: "http://gateway:8080"
-            prometheus_host: "prometheus"
-            inactivity_duration: "5m"
-            basic_auth: "${BASIC_AUTH:-false}"
-            secret_mount_path: "/run/secrets"
-        networks:
-            - functions
-        deploy:
-            restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 20
-                window: 380s
-            placement:
-                constraints:
-                - "node.role == manager"
-                - "node.platform.os == linux"
-        secrets:
-            - basic-auth-user
-            - basic-auth-password
+    # faas-idler:
+    #     image: quay.io/openfaas/faas-idler:0.4.0
+    #     environment:
+    #         gateway_url: "http://gateway:8080"
+    #         prometheus_host: "prometheus"
+    #         inactivity_duration: "5m"
+    #         basic_auth: "${BASIC_AUTH:-false}"
+    #         secret_mount_path: "/run/secrets"
+    #     networks:
+    #         - functions
+    #     deploy:
+    #         restart_policy:
+    #             condition: on-failure
+    #             delay: 5s
+    #             max_attempts: 20
+    #             window: 380s
+    #         placement:
+    #             constraints:
+    #             - "node.role == manager"
+    #             - "node.platform.os == linux"
+    #     secrets:
+    #         - basic-auth-user
+    #         - basic-auth-password
 
     # End services
 
     # Start monitoring
 
-    prometheus:
-        image: prom/prometheus:v2.11.0
-        environment:
-            no_proxy: "gateway"
-        volumes:
-            - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-        # configs:
-        #     - source: prometheus_config
-        #       target: /etc/prometheus/prometheus.yml
-        #     - source: prometheus_rules
-        #       target: /etc/prometheus/alert.rules.yml
-        command:
-            - "--config.file=/etc/prometheus/prometheus.yml"
-        #   - '-storage.local.path=/prometheus'
-        ports:
-            - 9090:9090
-        networks:
-            - functions
-        deploy:
-            placement:
-                constraints:
-                    - "node.role == manager"
-                    - "node.platform.os == linux"
-            resources:
-                limits:
-                    memory: 500M
-                reservations:
-                    memory: 200M
-#
+#     prometheus:
+#         image: prom/prometheus:v2.11.0
+#         environment:
+#             no_proxy: "gateway"
+#         volumes:
+#             - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+#         # configs:
+#         #     - source: prometheus_config
+#         #       target: /etc/prometheus/prometheus.yml
+#         #     - source: prometheus_rules
+#         #       target: /etc/prometheus/alert.rules.yml
+#         command:
+#             - "--config.file=/etc/prometheus/prometheus.yml"
+#         #   - '-storage.local.path=/prometheus'
+#         ports:
+#             - 9090:9090
+#         networks:
+#             - functions
+#         deploy:
+#             placement:
+#                 constraints:
+#                     - "node.role == manager"
+#                     - "node.platform.os == linux"
+#             resources:
+#                 limits:
+#                     memory: 500M
+#                 reservations:
+#                     memory: 200M
+# #
 #     alertmanager:
 #         image: prom/alertmanager:v0.18.0
 #         environment:
@@ -249,10 +249,11 @@ services:
 
 networks:
     functions:
-        driver: overlay
-        attachable: true
-        labels:
-            - "openfaas=true"
+      external: true
+        # driver: overlay
+        # attachable: true
+        # labels:
+        #     - "openfaas=true"
     public:
       external: true
 

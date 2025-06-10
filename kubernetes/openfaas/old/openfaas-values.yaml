@@ -1,0 +1,3 @@
+basic_auth: true
+nats:
+  enabled: true

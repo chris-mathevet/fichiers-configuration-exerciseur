@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-worker-deployment
+  namespace: openfaas
+  labels:
+    app: queue-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: queue-worker
+  template:
+    metadata:
+      labels:
+        app: queue-worker
+    spec:
+      containers:
+      - name: queue-worker
+        image: ghcr.io/openfaas/queue-worker:619158b8e41fd0d26ccbc7c5f5469c0698d3bad1
+        env:
+        - name: max_inflight
+          value: "1"
+        - name: ack_wait
+          value: "5m5s"
+        - name: basic_auth
+          valueFrom:
+            configMapKeyRef:
+              name: basic-auth-config
+              key: basic_auth
+        - name: gateway_invoke
+          value: "true"
+        - name: faas_gateway_address
+          value: "gateway"
+        resources:
+          requests:
+            memory: "20Mi"
+          limits:
+            memory: "50Mi"
+      restartPolicy: Always
+--- # Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-worker
+  namespace: openfaas
+spec:
+  selector:
+    app: queue-worker
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

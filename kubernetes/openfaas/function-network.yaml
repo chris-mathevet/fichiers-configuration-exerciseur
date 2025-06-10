@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: functions
+  namespace: openfaas
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: openfaas
+        - namespaceSelector:
+            matchLabels:
+              name: public
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: openfaas
+        - namespaceSelector:
+            matchLabels:
+              name: public
+  policyTypes:
+    - Ingress
+    - Egress

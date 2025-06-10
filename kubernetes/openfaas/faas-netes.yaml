@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faas-netes-deployment
+  namespace: openfaas
+  labels:
+    app: faas-netes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: faas-netes
+  template:
+    metadata:
+      labels:
+        app: faas-netes
+    spec:
+      serviceAccountName: faas-controller
+      containers:
+      - name: faas-netes
+        image: quay.io/openfaas/faas-netes:0.12.4
+        volumeMounts:
+        - name: basic-auth
+          mountPath: /var/run/secrets
+          readOnly: true  
+        env:
+        - name: read_timeout
+          value: "5m5s"
+        - name: write_timeout
+          value: "5m5s"
+        - name: basic_auth
+          valueFrom:
+            configMapKeyRef:
+              name: basic-auth-config
+              key: basic_auth
+        resources:
+          requests:
+            memory: "100Mi"
+          # limits:
+          #   memory: "200Mi"
+      volumes:
+      - name: basic-auth
+        secret:
+          secretName: basic-auth
+      restartPolicy: Always
+--- # Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: faas-netes
+  namespace: openfaas
+spec:
+  selector:
+    app: faas-netes
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: openfaas-fn
+  name: faas-netes-deployment-access
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["list", "get", "watch"]
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["list", "get", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: faas-netes-deployment-access-binding
+  namespace: openfaas-fn  
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: openfaas 
+roleRef:
+  kind: Role
+  name: faas-netes-deployment-access
+  apiGroup: rbac.authorization.k8s.io

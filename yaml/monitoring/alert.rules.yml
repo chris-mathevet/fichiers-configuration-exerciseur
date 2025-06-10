@@ -1,0 +1,29 @@
+groups:
+- name: docker-swarm-alerts
+  rules:
+  - alert: HighCpuUsage
+    expr: sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name=~".+"}[1m])) by (container_label_com_docker_swarm_service_name) > 0.9
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "CPU trop élevé sur {{ $labels.container_label_com_docker_swarm_service_name }}"
+      description: "Usage CPU > 90% pendant 2 minutes"
+
+  - alert: HighMemoryUsage
+    expr: sum(container_memory_usage_bytes{container_label_com_docker_swarm_service_name=~".+"}) by (container_label_com_docker_swarm_service_name) / sum(container_spec_memory_limit_bytes{container_label_com_docker_swarm_service_name=~".+"}) by (container_label_com_docker_swarm_service_name) > 0.8
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Mémoire trop élevée sur {{ $labels.container_label_com_docker_swarm_service_name }}"
+      description: "Usage mémoire > 80% pendant 2 minutes"
+
+  - alert: FrequentRestarts
+    expr: sum(increase(container_restart_count{container_label_com_docker_swarm_service_name=~".+"}[5m])) by (container_label_com_docker_swarm_service_name) > 3
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redémarrages fréquents détectés sur {{ $labels.container_label_com_docker_swarm_service_name }}"
+      description: "Plus de 3 redémarrages dans les 5 dernières minutes"

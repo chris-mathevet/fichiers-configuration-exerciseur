@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basic-auth-plugin-deployment
+  namespace: openfaas
+  labels:
+    app: basic-auth-plugin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basic-auth-plugin
+  template:
+    metadata:
+      labels:
+        app: basic-auth-plugin
+    spec:
+      containers:
+      - name: basic-auth-plugin
+        # image: quay.io/openfaas/basic-auth-plugin:0.18.18
+        image: ghcr.io/openfaas/basic-auth:0.25.5
+        env:
+        - name: secret_mount_path
+          value: "/var/secrets"
+        resources:
+          requests:
+            memory: "50Mi"
+        volumeMounts:
+        - name: auth
+          mountPath: /var/secrets
+          readOnly: true
+      volumes:
+      - name: auth
+        secret:
+          secretName: basic-auth
+      restartPolicy: Always
+--- # Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: basic-auth-plugin
+  namespace: openfaas
+spec:
+  selector:
+    app: basic-auth-plugin
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

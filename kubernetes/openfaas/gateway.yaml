@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-deployment
+  namespace: openfaas
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        # image: quay.io/openfaas/gateway:0.18.18
+        image: ghcr.io/openfaas/gateway:0.27.12
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: basic-auth
+          mountPath: /var/run/secrets
+          readOnly: true  
+        env:
+        - name: functions_provider_url
+          value: "http://faas-netes:8080/"
+        - name: prometheus_url
+          value: "http://prometheus:9000/"
+        - name: read_timeout
+          value: "5m5s"
+        - name: write_timeout
+          value: "5m5s"
+        - name: upstream_timeout
+          value: "5m"
+        - name: dnsrr
+          value: "true"
+        - name: faas_nats_address
+          value: "nats"
+        - name: faas_nats_port
+          value: "4222"
+        - name: direct_functions
+          value: "true"
+        - name: direct_functions_suffix
+          value: ""
+        - name: basic_auth
+          valueFrom:
+            configMapKeyRef:
+              name: basic-auth-config
+              key: basic_auth
+        - name: scale_from_zero
+          value: "true"
+        - name: max_idle_conns
+          value: "1024"
+        - name: max_idle_conns_per_host
+          value: "1024"
+        - name: auth_proxy_url
+          valueFrom:
+            configMapKeyRef:
+              name: basic-auth-config
+              key: auth_url
+        - name: auth_proxy_pass_body
+          value: "false"
+        resources:
+          requests:
+            memory: "100Mi"
+          # limits:
+          #   memory: "200Mi"
+      volumes:
+      - name: basic-auth
+        secret:
+          secretName: basic-auth
+      restartPolicy: Always
+--- # Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: openfaas
+spec:
+  selector:
+    app: gateway
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  # type: LoadBalancer

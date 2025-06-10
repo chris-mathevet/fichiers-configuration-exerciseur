@@ -25,6 +25,21 @@ services:
       SMTP_EMAIL_PASSWORD_FILE: /run/secrets/smtp-email-password
       SMTP_EMAIL_USER_FILE: /run/secrets/smtp-email-user
     image: jrobert2/pcap-api:1.03
+    entrypoint: /bin/sh
+    command: |-
+      -c '
+      apt-get update --allow-releaseinfo-change &&
+      apt-get update &&
+      echo "pews.univ-orleans.fr" > /etc/mailname &&
+      DEBIAN_FRONTEND=noninteractive apt-get install postfix -y &&
+      postconf -e "myhostname = localhost" &&
+      postconf -e "mydestination = localhost.univ-orleans.fr, localhost" &&
+      postconf -e "relayhost = smtp.univ-orleans.fr" &&
+      service postfix restart &&
+      python3 manage.py migrate || exit 0 &&
+      pip3 install -e git+https://gitlab.com/FlorentBecker2/docker-exerciseur.git#egg=docker_exerciseur &&
+      python3 manage.py runserver 0.0.0.0:8000
+      '
     networks:
       public: {}
     secrets:
@@ -35,11 +50,22 @@ services:
     # - /home/lifoadm/pcap-deployment-master/Stacks/src/pcap-api:/pcap-api:rw # Pour cluster Mono - Noeuds sur pcap-master
     - /var/run/docker.sock:/var/run/docker.sock:rw
   pcap-celery-worker:
-    command: -A pcap_api worker
+    command: |-
+      -c '
+      apt-get update --allow-releaseinfo-change &&
+      apt-get update &&
+      echo "pews.univ-orleans.fr" > /etc/mailname &&
+      DEBIAN_FRONTEND=noninteractive apt-get install postfix -y &&
+      postconf -e "myhostname = localhost" &&
+      postconf -e "mydestination = localhost.univ-orleans.fr, localhost" &&
+      postconf -e "relayhost = smtp.univ-orleans.fr" &&
+      service postfix restart &&
+      exec celery -A pcap_api worker
+      '
     deploy:
       mode: replicated
       replicas: 1
-    entrypoint: celery
+    entrypoint: /bin/sh
     environment:
       PROF_GROUP: enseignants
       DATABASE_HOST: pcap-db
@@ -79,7 +105,7 @@ services:
       labels:
         traefik.enable: "true"
         traefik.http.routers.nginx.entrypoints: websecure
-        traefik.http.routers.nginx.rule: Host(`rtd.localhost`)
+        traefik.http.routers.nginx.rule: Host(`mirevserver2`)
         traefik.http.routers.nginx.service: nginx
         traefik.http.routers.nginx.tls.certresolver: leresolver
         traefik.http.services.nginx.loadbalancer.server.port: '80'
@@ -123,7 +149,7 @@ services:
       EasyPythonProduction: "true"
       PCAP_API_SERVER: pcap-api-rest:8000/pcap
       PCAP_API_URI: http://localhost/pcap/api/v1/
-      RTD_PRODUCTION_DOMAIN: rtd.localhost:80
+      RTD_PRODUCTION_DOMAIN: mirevserver2:80
       no_proxy: '"localhost,127.0.0.1,pcap-api-rest,pcap-rtd-db"'
     image: jrobert2/rtd:1.0
     networks:

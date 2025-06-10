@@ -1,0 +1,18 @@
+# Ingress pour accéder aux dashboard d'openfaas pour voir les fonctions
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus-dashboard
+  namespace: openfaas
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`prometheus.localhost`)
+      kind: Rule
+      services:
+        - name: prometheus
+          namespace: openfaas
+          port: 9090
+  tls:  
+    certResolver: leresolver

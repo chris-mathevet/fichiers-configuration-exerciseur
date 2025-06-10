@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  visualizer:
+    image: dockersamples/visualizer
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - public
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.visualizer.entrypoints: websecure
+        traefik.http.routers.visualizer.rule: Host(`visualizer.localhost`)
+        traefik.http.routers.visualizer.tls.certresolver: leresolver
+        traefik.http.services.visualizer.loadbalancer.server.port: "8080"
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    restart: always
+
+networks:
+  public:
+    external: true

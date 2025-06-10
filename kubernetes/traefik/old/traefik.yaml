@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: traefik
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      containers:
+        - name: traefik
+          image: traefik:2.10.4
+          args:
+            - --entrypoints.web.address=:80
+            - --entrypoints.web.http.redirections.entryPoint.to=websecure
+            - --entrypoints.web.http.redirections.entryPoint.scheme=https
+            - --entrypoints.web.http.redirections.entryPoint.permanent=true
+            - --entrypoints.websecure.address=:443
+            - --entrypoints.dashboard.address=:8888
+            - --providers.kubernetesingress=true
+            - --api.insecure=true
+            - --log.level=ERROR
+            - --certificatesresolvers.leresolver.acme.httpchallenge=true
+            - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+            - --certificatesresolvers.leresolver.acme.email=julien.robert@univ-orleans.fr
+            - --certificatesresolvers.leresolver.acme.storage=/root/acme/acme.json
+          ports:
+            - name: web
+              containerPort: 80
+            - name: websecure
+              containerPort: 443
+            - name: dashboard
+              containerPort: 8888
+          volumeMounts:
+            - name: acme
+              mountPath: /root/acme
+      volumes:
+        - name: acme
+          hostPath:
+            path: /root/acme
+            type: DirectoryOrCreate
+--- #Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  type: LoadBalancer
+  selector:
+    app: traefik
+  ports:
+    - name: web
+      port: 80
+      targetPort: 80
+    - name: websecure
+      port: 443
+      targetPort: 443
+    - name: dashboard
+      port: 8888
+      targetPort: 8888
