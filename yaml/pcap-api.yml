@@ -1,11 +1,6 @@
 networks:
   public:
     external: true
-secrets:
-  smtp-email-password:
-    external: true
-  smtp-email-user:
-    external: true
 services:
   pcap-api:
     deploy:
@@ -18,12 +13,10 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      PROF_GROUP: enseignants
+      PROF_GROUP: enseignants_permissions
       DATABASE_HOST: pcap-db
       DATABASE_NAME: postgres
       OPENFAAS_URL: http://gateway:8080
-      SMTP_EMAIL_PASSWORD_FILE: /run/secrets/smtp-email-password
-      SMTP_EMAIL_USER_FILE: /run/secrets/smtp-email-user
     image: jrobert2/pcap-api:1.03
     entrypoint: /bin/sh
     command: |-
@@ -37,14 +30,11 @@ services:
       postconf -e "relayhost = smtp.univ-orleans.fr" &&
       service postfix restart &&
       python3 manage.py migrate || exit 0 &&
-      pip3 install -e git+https://gitlab.com/FlorentBecker2/docker-exerciseur.git#egg=docker_exerciseur &&
+      pip3 install --no-input -e git+https://gitlab.com/FlorentBecker2/docker-exerciseur.git#egg=docker_exerciseur &&
       python3 manage.py runserver 0.0.0.0:8000
       '
     networks:
       public: {}
-    secrets:
-    - source: smtp-email-password
-    - source: smtp-email-user
     volumes:
     - pcap-api:/pcap-api:rw # Serveur NFS pour cluster Multi Noeuds
     # - /home/lifoadm/pcap-deployment-master/Stacks/src/pcap-api:/pcap-api:rw # Pour cluster Mono - Noeuds sur pcap-master
@@ -67,18 +57,13 @@ services:
       replicas: 1
     entrypoint: /bin/sh
     environment:
-      PROF_GROUP: enseignants
+      PROF_GROUP: enseignants_permissions
       DATABASE_HOST: pcap-db
       DATABASE_NAME: postgres
       OPENFAAS_URL: http://gateway:8080
-      SMTP_EMAIL_PASSWORD_FILE: /run/secrets/smtp-email-password
-      SMTP_EMAIL_USER_FILE: /run/secrets/smtp-email-user
     image: jrobert2/pcap-api:1.03
     networks:
       public: {}
-    secrets:
-    - source: smtp-email-password
-    - source: smtp-email-user
     volumes:
     - pcap-api:/pcap-api:rw # Serveur NFS pour cluster Multi Noeuds
     # - /home/lifoadm/pcap-deployment-master/Stacks/src/pcap-api:/pcap-api:rw # Pour cluster Mono - Noeuds sur pcap-master 
@@ -105,7 +90,7 @@ services:
       labels:
         traefik.enable: "true"
         traefik.http.routers.nginx.entrypoints: websecure
-        traefik.http.routers.nginx.rule: Host(`mirevserver2`)
+        traefik.http.routers.nginx.rule: Host(`DomainName`)
         traefik.http.routers.nginx.service: nginx
         traefik.http.routers.nginx.tls.certresolver: leresolver
         traefik.http.services.nginx.loadbalancer.server.port: '80'
@@ -149,7 +134,7 @@ services:
       EasyPythonProduction: "true"
       PCAP_API_SERVER: pcap-api-rest:8000/pcap
       PCAP_API_URI: http://localhost/pcap/api/v1/
-      RTD_PRODUCTION_DOMAIN: mirevserver2:80
+      RTD_PRODUCTION_DOMAIN: DomainName:80
       no_proxy: '"localhost,127.0.0.1,pcap-api-rest,pcap-rtd-db"'
     image: jrobert2/rtd:1.0
     networks:
