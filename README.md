@@ -7,6 +7,8 @@ Stagiaire au LIFO dans le cadre de la fin de BUT 2 à l'IUT d'Orléans.
 
 Ce dépôt git permet de stocker les différents fichiers de configurations nécessaires pour l'application "Exerciseur" utilisée par le LIFO dans le cadre de recherche et à l'IUT d'Orléans dans un but pédagogique.
 
+**Remarque**: les fichiers pour Kubernetes sont des débuts, comme expliqué avec mon rapport de stage, il faudra changer l'exerciseur pour utiliser Knative au lieu d'OpenFaas et donc modifier ces fichiers de configurations.
+
 # Répertoires
 
 ## Yaml
