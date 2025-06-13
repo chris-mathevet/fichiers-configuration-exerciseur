@@ -1,7 +1,8 @@
 # Auteur
 
 MATHEVET Chris  
-Stagiaire au LIFO dans le cadre de la fin de BUT 2 à l'IUT d'Orléans.  
+Stagiaire au LIFO dans le cadre de la fin de BUT 2 à l'IUT d'Orléans. 
+mathevet.chris@gmail.com 
 
 # Explications
 
