@@ -20,7 +20,7 @@ Contient également un fichier `local_dev.sh` pour créer les 3 stacks docker.
 
 Vous pouvez également modifier la ligne **24**, en précisant un autre chemin pour le fichier `acme.json`, le répertoire doit exister, vous devrez également modifier la partie à gauche des `:` dans la définition des volume ligne **37**.
 
-**ATTENTION**, il faut modifier `pcap-api.yaml` pour inscrire le nom de domaine souhaité. Il faut modifier "DomainName" présentes au lignes **93** (pcap-nginx) et **137** (pcap-rtd).
+**ATTENTION**, il faut modifier `pcap-api.yaml` pour inscrire le nom de domaine souhaité. Il faut modifier "<DomainName>" présentes au lignes **108** (pcap-nginx) et **152** (pcap-rtd).
 
 ## Archives_volumes
 
@@ -32,4 +32,4 @@ Pour le répertoire "nginx", il faut configurer le serveur NFS (ou autre) pour q
 
 Il est utilisé simplement en volume-bind pour le fichier de configuration.
 
-Potentiellement modifier la ligne **94** de votre fichier pcap-api.yaml en fonction d'où le fichier nginx.conf sera placé.
+Potentiellement modifier la ligne **120** de votre fichier pcap-api.yaml en fonction d'où le fichier nginx.conf sera placé.

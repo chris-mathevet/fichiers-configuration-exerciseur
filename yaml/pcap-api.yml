@@ -105,7 +105,7 @@ services:
       labels:
         traefik.enable: "true"
         traefik.http.routers.nginx.entrypoints: websecure
-        traefik.http.routers.nginx.rule: Host(`DomainName`)
+        traefik.http.routers.nginx.rule: Host(`<DomainName>`)
         traefik.http.routers.nginx.service: nginx
         traefik.http.routers.nginx.tls.certresolver: leresolver
         traefik.http.services.nginx.loadbalancer.server.port: '80'
@@ -149,7 +149,7 @@ services:
       EasyPythonProduction: "true"
       PCAP_API_SERVER: pcap-api-rest:8000/pcap
       PCAP_API_URI: http://localhost/pcap/api/v1/
-      RTD_PRODUCTION_DOMAIN: DomainName:80
+      RTD_PRODUCTION_DOMAIN: <DomainName>:80
       no_proxy: '"localhost,127.0.0.1,pcap-api-rest,pcap-rtd-db"'
     image: jrobert2/rtd:1.0
     networks:
